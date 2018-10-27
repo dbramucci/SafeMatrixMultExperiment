@@ -1,23 +1,27 @@
-{-# LANGUAGE TypeInType, GADTs, ScopedTypeVariables, StandaloneDeriving #-}
+{-# LANGUAGE TypeInType, GADTs, ScopedTypeVariables, StandaloneDeriving, DeriveFunctor #-}
 module Matrix where
 
 import SizedList
 
-data Matrix (m :: Nat) (n :: Nat) a where
+newtype Matrix (m :: Nat) (n :: Nat) a where
     -- | Matrix is an m x n matrix of elements of type a
     -- The implementation at the moment is that it is a list of n columns of m elements.
     -- For the sake of efficiency this implementation will likely change.
     Matrix :: SizedList n (SizedList m a) -> Matrix m n a
 
 deriving instance Show a => Show (Matrix m n a)
+deriving instance Functor (Matrix m n)
+
+type Matrix_ m n a = SizedList n (SizedList m a)
 
 add :: Num a => Matrix m n a -> Matrix m n a -> Matrix m n a
--- add (Matrix (Last x)) (Matrix (Last y)) = Matrix (Last (addColumn x y))
--- add (Matrix (firstA :-: restA)) (Matrix (firstB :-: restB)) = Matrix (addColumn firstA firstB :-: restAdded)
-add (Matrix columnsA) (Matrix columnsB) =
-  case (columnsA, columnsB) of
-      (Last x, Last y) -> Matrix (Last (addColumn x y))
-      (firstA :-: restA, firstB :-: restB) -> let Matrix restAdded = add (Matrix restA) (Matrix restB) in Matrix (addColumn firstA firstB :-: restAdded)
+add (Matrix a) (Matrix b) = Matrix (add' a b)
+
+add' :: Num a => Matrix_ m n a -> Matrix_ m n a -> Matrix_ m n a
+add' a b =
+  case (a, b) of
+      (Last x, Last y) -> Last (addColumn x y)
+      (firstA :-: restA, firstB :-: restB) -> addColumn firstA firstB :-: add' restA restB
       -- (_, _) -> error "impossible"
     where
       addColumn :: Num a => SizedList r a -> SizedList r a -> SizedList r a
@@ -36,25 +40,26 @@ add (Matrix columnsA) (Matrix columnsB) =
 
 
 transpose :: Matrix m n a -> Matrix n m a
-transpose (Matrix columns) = Matrix (newRows columns)
-        where
-          newRows :: SizedList n (SizedList m a) -> SizedList m (SizedList n a)
-          newRows (Last xs) = fmap Last xs
-          -- Once the rest of the matrix is transposed we can transpose the first column by taking each element from the leftmost column and
-          -- adding it to the top of the transposed right part.
-          -- sizedZip makes this easy.
-          newRows (x :-: xs) = sizedZip (:-:) x restTransposed
-            where
-              restTransposed = newRows xs
+transpose (Matrix a) = Matrix (transpose' a)
+
+transpose' :: Matrix_ m n a -> Matrix_ n m a
+transpose' (Last xs) = fmap Last xs
+transpose' (x :-: xs) =
+    -- Once the rest of the matrix is transposed we can transpose the first column by taking each element from the leftmost column and
+    -- adding it to the top of the transposed right part.
+    -- sizedZip makes this easy.
+    sizedZip (:-:) x (transpose' xs)
+        
 
 mult :: Num a => Matrix m n a -> Matrix n r a -> Matrix m r a
-mult a b = let Matrix aC = a'
-               Matrix bC = b
-           in Matrix (columnMult aC bC)
+mult (Matrix a) (Matrix b) = Matrix (mult' a b)
+
+mult' :: Num a => Matrix_ m n a -> Matrix_ n r a -> Matrix_ m r a
+mult' a = columnMult a'
     where
       -- a' and b have the same number of rows.
-      -- a' :: Matrix n m a
-      a' = transpose a
+      -- a' :: Matrix_ n m a
+      a' = transpose' a
 
       columnMult :: Num a => SizedList m (SizedList n a) -> SizedList r (SizedList n a) -> SizedList r (SizedList m a)
       columnMult (Last x) (Last y) = Last . Last . sizedSum $ sizedZip (*) x y
