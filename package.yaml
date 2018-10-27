@@ -1,0 +1,48 @@
+name:                safe-matrix-experiment
+version:             0.1.0.0
+github:              "dbramucci/safe-matrix-experiment"
+license:             BSD3
+author:              "Daniel Bramucci"
+maintainer:          "dbramuccicode@gmail.com"
+copyright:           "MIT"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            experiment
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/dbramucci/safe-matrix-experiment#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  safe-matrix-experiment-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - safe-matrix-experiment
+
+tests:
+  safe-matrix-experiment-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - safe-matrix-experiment
