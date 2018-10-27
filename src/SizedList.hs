@@ -7,6 +7,8 @@ data Nat = Zero | Suc Nat
 data SizedList a (n :: Nat) where
     Nil :: SizedList a Zero
     (:-:) :: a -> SizedList a m -> SizedList a (Suc m)
+-- Make SizedList right associative with the same precedence as normal list consing.
+infixr 5 :-:
 
 -- | Gives a nice format for Sized Lists of the form [e1, e2, e3, ...; size].
 instance Show a => Show (SizedList a n) where
