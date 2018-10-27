@@ -1,11 +1,11 @@
-{-# LANGUAGE TypeInType, GADTs, ScopedTypeVariables, DeriveFunctor, StandaloneDeriving  #-}
+{-# LANGUAGE TypeInType, GADTs, ScopedTypeVariables, DeriveFunctor, StandaloneDeriving #-}
 module SizedList where
 
 -- | A Natural number is either zero, or a successor to another natural number.
-data Nat = Zero | Suc Nat
+data Nat = One | Suc Nat
 
 data SizedList (n :: Nat) a where
-    Last :: a -> SizedList ('Suc 'Zero) a
+    Last :: a -> SizedList 'One a
     (:-:) :: a -> SizedList m a -> SizedList ('Suc m) a
 -- Make SizedList right associative with the same precedence as normal list consing.
 infixr 5 :-:

@@ -18,7 +18,7 @@ add (Matrix columnsA) (Matrix columnsB) =
   case (columnsA, columnsB) of
       (Last x, Last y) -> Matrix (Last (addColumn x y))
       (firstA :-: restA, firstB :-: restB) -> let Matrix restAdded = add (Matrix restA) (Matrix restB) in Matrix (addColumn firstA firstB :-: restAdded)
-      (_, _) -> error "impossible"
+      -- (_, _) -> error "impossible"
     where
       addColumn :: Num a => SizedList r a -> SizedList r a -> SizedList r a
       -- Notice that Haskell doesn't throw a warning that I might be missing a case
@@ -31,8 +31,8 @@ add (Matrix columnsA) (Matrix columnsB) =
       addColumn (Last x) (Last y) = Last (x + y)
       addColumn (x :-: xs) (y :-: ys) = (x + y) :-: addColumn xs ys
       -- Haskell even complains these last two cases are redundant.
-      addColumn _ (Last _) = error "impossible"
-      addColumn (Last _) _ = error "impossible"
+      -- addColumn _ (Last _) = error "impossible"
+      -- addColumn (Last _) _ = error "impossible"
 
 
 transpose :: Matrix m n a -> Matrix n m a
