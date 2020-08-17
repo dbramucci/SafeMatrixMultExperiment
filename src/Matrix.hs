@@ -54,6 +54,10 @@ transpose' (x :-: xs) =
 mult :: Num a => Matrix m n a -> Matrix n r a -> Matrix m r a
 mult (Matrix a) (Matrix b) = Matrix (mult' a b)
 
+dotProd' :: Num a => SizedList n a -> SizedList n a -> a
+dotProd' xs ys = sizedSum (sizedZip (*) xs ys)
+
+
 mult' :: Num a => Matrix_ m n a -> Matrix_ n r a -> Matrix_ m r a
 mult' a = columnMult a'
     where
@@ -62,8 +66,8 @@ mult' a = columnMult a'
       a' = transpose' a
 
       columnMult :: Num a => SizedList m (SizedList n a) -> SizedList r (SizedList n a) -> SizedList r (SizedList m a)
-      columnMult (Last x) (Last y) = Last . Last . sizedSum $ sizedZip (*) x y
-      columnMult (Last x) (y :-: ys) = let Last first = columnMult (Last x) (Last y) in first :-: columnMult (Last x) ys
+      columnMult (Last x) (Last y) = Last . Last $ dotProd' x y
+      columnMult (Last x) (y :-: ys) = Last (dotProd' x y) :-: columnMult (Last x) ys
       columnMult (x :-: xs) ys = let first = columnMult (Last x) ys in sizedZip (\(Last c) cs -> c:-:cs) first (columnMult xs ys)
       -- All of the below functions are incorrect and it turns out that Haskell can catch that thhese are wrong thruogh the types.
       -- columnMult (x :-: xs) (Last y) = let Last first = columnMult (Last x) (Last y) in fmap (first :-:) (columnMult xs (Last y))
